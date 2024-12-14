@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next Fit Memory Allocation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #cb11a0, #df61a0);
+            color:#170101;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.2rem;
+            color: #170101;
+            background: #9d3ba0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #9f2b88;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            color: #fff;
+        }
+
+        table, th, td {
+            border: 1px solid #170101;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>NEXT-FIT ALGORITHM</h1>
+        <label for="SizeOfBlock">Sizes of Blocks (seperate-with-commas):</label>
+        <input type="text" id="SizeOfBlock">
+
+        <label for="SizeOfProcess">Sizes of Processes (seperate-with-commas):</label>
+        <input type="text" id="SizeOfProcess">
+
+        <button onclick="NextFit()">Allocate Memory</button>
+
+        <div class="result" id="allocate"></div>
+    </div>
+
+    <script>
+        function NextFit() {
+            const InputOfBlock = document.getElementById('SizeOfBlock').value.trim();
+            const InputOfProcess = document.getElementById('SizeOfProcess').value.trim();
+            const output = document.getElementById('allocate');
+
+            // Check if the block size input is empty
+            if (!InputOfBlock) {
+                output.innerHTML = '<p>The size of the block is not provided</p>';
+                return;
+            }
+
+            // Check if the process size input is empty
+            if (!InputOfProcess) {
+                output.innerHTML = '<p>The size of the process is not provided</p>';
+                return;
+            }
+
+            // Split the inputs into arrays of numbers
+            const blockSize = InputOfBlock.split(',').map(Number);
+            const processSize = InputOfProcess.split(',').map(Number);         
+
+            // Creating an array as the same length of number of processes to store the index of the block assigned to each process
+            // -1 indicates that no process is allocated at the beginning
+            let memoryAllocation = new Array(processSize.length).fill(-1);
+
+            // Variable indexOfBlock is to indicate the index of the block which is being checked for allocation starting from index 0
+            let indexOfBlock = 0;
+
+            // This loop is to iterate through each process to allocate it to a block
+            for (let indexOfProcess = 0; indexOfProcess < processSize.length; indexOfProcess++) {
+                // Save starting index to detect full traversal
+                let startIndex = indexOfBlock;
+
+                while (true) {
+                    // Checks whether the block size is large enough to hold the current process
+                    if (blockSize[indexOfBlock] >= processSize[indexOfProcess]) {
+                        // Stores the indexOfBlock to allocate the current process to the current block
+                        memoryAllocation[indexOfProcess] = indexOfBlock;
+                        // Updates the size of the block by reducing it by the size of the allocated process
+                        blockSize[indexOfBlock] -= processSize[indexOfProcess];
+                        break;
+                    }
+
+                    // Move to the next block 
+                    indexOfBlock = (indexOfBlock + 1) % blockSize.length;
+
+                    // Stop if we've looped back to the start
+                    if (indexOfBlock === startIndex) {
+                        break;
+                    }
+                }
+            }
+
+            // Generate table for results
+            let tableHTML = '<table><thead><tr><th>Process No.</th><th>Process Size</th><th>Block No.</th></tr></thead><tbody>';
+            processSize.forEach((size, index) => {
+                tableHTML += `<tr><td>${index + 1}</td><td>${size}</td><td>${memoryAllocation[index] !== -1 ? memoryAllocation[index] + 1 : 'Not Allocated'}</td></tr>`;
+            });
+            tableHTML += '</tbody></table>';
+
+            output.innerHTML = tableHTML;
+        }
+    </script>
+</body>
+</html>
+
+
+
